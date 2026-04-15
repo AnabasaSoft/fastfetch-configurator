@@ -6,6 +6,10 @@ on:
       - 'v*' # Se ejecuta automáticamente al subir un tag como v1.0
   workflow_dispatch: # Permite ejecutarlo a mano desde la web
 
+# --- NUEVO: Dar permiso de escritura al bot para crear la Release ---
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Compilar en ${{ matrix.os }}
