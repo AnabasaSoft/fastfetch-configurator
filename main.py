@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QTabWidget, QWidget,
                                  QDialogButtonBox, QAbstractItemView, QLineEdit, QHBoxLayout,
                                  QTreeWidget, QTreeWidgetItem, QSpinBox, QInputDialog,
                                  QListWidgetItem)
-from PyQt6.QtGui import QFont, QAction
+from PyQt6.QtGui import QFont, QAction, QIcon
 from PyQt6.QtCore import Qt
 import locale
 
@@ -213,6 +213,11 @@ TEXTOS = {
         "Cyberpunk (Neón y Cajas)": "Cyberpunk (Neon & Boxes)",
         "Minimalista (Sin bordes)": "Minimalist (No borders)",
         "Mac-Style (Limpio)": "Mac-Style (Clean)",
+        "Dracula (Neón Oscuro)": "Dracula (Dark Neon)",
+        "Terminal Retro (Hacker)": "Retro Terminal (Hacker)",
+        "Catppuccin (Pastel y Bloques)": "Catppuccin (Pastel & Blocks)",
+        "Espaciado superior inicial (líneas):": "Initial top spacing (lines):",
+        "Espaciado entre secciones (líneas):": "Spacing between sections (lines):",
         "Aviso": "Warning",
         "Error": "Error",
         "Éxito": "Success",
@@ -237,6 +242,18 @@ def tr(texto):
     if IDIOMA == "es":
         return texto
     return TEXTOS.get(IDIOMA, {}).get(texto, texto)
+
+def resource_path(relative_path):
+    """
+    Obtiene la ruta absoluta al recurso.
+    Funciona tanto en desarrollo como al compilar con PyInstaller.
+    """
+    try:
+        # PyInstaller crea una carpeta temporal y guarda la ruta en _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 class DialogoEditarModulo(QDialog):
     def __init__(self, mod_dict, parent=None):
@@ -818,6 +835,8 @@ class FastfetchConfigurator(QMainWindow):
                 if hasattr(self, 'cmb_barra_vacio'): self.cmb_barra_vacio.setCurrentIndex(gui.get("barra_vacio", 0))
                 if hasattr(self, 'cmb_barra_chars'): self.cmb_barra_chars.setCurrentIndex(gui.get("barra_chars", 0))
                 if hasattr(self, 'cmb_color_iconos'): self.cmb_color_iconos.setCurrentIndex(gui.get("color_iconos", 0))
+                if hasattr(self, 'spin_padding_top_secciones'): self.spin_padding_top_secciones.setValue(gui.get("padding_top_secciones", 0))
+                if hasattr(self, 'spin_padding_secciones'): self.spin_padding_secciones.setValue(gui.get("padding_secciones", 1))
 
                 self.ruta_imagen_custom = gui.get("ruta_imagen", "")
                 if self.ruta_imagen_custom and hasattr(self, 'btn_buscar_img'):
@@ -988,7 +1007,10 @@ class FastfetchConfigurator(QMainWindow):
         self.cmb_plantillas.addItems([
             tr("Cyberpunk (Neón y Cajas)"),
             tr("Minimalista (Sin bordes)"),
-            tr("Mac-Style (Limpio)")
+            tr("Mac-Style (Limpio)"),
+            tr("Dracula (Neón Oscuro)"),
+            tr("Terminal Retro (Hacker)"),
+            tr("Catppuccin (Pastel y Bloques)")
         ])
         layout_plantillas.addWidget(self.cmb_plantillas)
 
@@ -1140,6 +1162,28 @@ class FastfetchConfigurator(QMainWindow):
 
         layout_global_4.addStretch()
         layout.addLayout(layout_global_4)
+
+        # --- Quinta fila de Opciones Globales (Espaciado) ---
+        layout_global_5 = QHBoxLayout()
+
+        layout_global_5.addWidget(QLabel(tr("Espaciado superior inicial (líneas):")))
+        self.spin_padding_top_secciones = QSpinBox()
+        self.spin_padding_top_secciones.setRange(0, 5)
+        self.spin_padding_top_secciones.setValue(0) # 0 por defecto
+        self.spin_padding_top_secciones.valueChanged.connect(self.update_preview)
+        layout_global_5.addWidget(self.spin_padding_top_secciones)
+
+        layout_global_5.addSpacing(15)
+
+        layout_global_5.addWidget(QLabel(tr("Espaciado entre secciones (líneas):")))
+        self.spin_padding_secciones = QSpinBox()
+        self.spin_padding_secciones.setRange(0, 5)
+        self.spin_padding_secciones.setValue(1) # 1 línea por defecto
+        self.spin_padding_secciones.valueChanged.connect(self.update_preview)
+        layout_global_5.addWidget(self.spin_padding_secciones)
+
+        layout_global_5.addStretch()
+        layout.addLayout(layout_global_5)
 
         # Espaciador visual antes de las secciones
         layout.addSpacing(10)
@@ -1320,6 +1364,8 @@ class FastfetchConfigurator(QMainWindow):
         if hasattr(self, 'cmb_color_global'): self.cmb_color_global.blockSignals(True)
         if hasattr(self, 'chk_iconos'): self.chk_iconos.blockSignals(True)
         if hasattr(self, 'cmb_color_iconos'): self.cmb_color_iconos.blockSignals(True)
+        if hasattr(self, 'spin_padding_top_secciones'): self.spin_padding_top_secciones.blockSignals(True)
+        if hasattr(self, 'spin_padding_secciones'): self.spin_padding_secciones.blockSignals(True)
 
         if indice == 0:  # Cyberpunk
             # Forzamos opciones globales
@@ -1395,8 +1441,98 @@ class FastfetchConfigurator(QMainWindow):
                 }
             ]
 
+        elif indice == 3:  # Dracula (Neón Oscuro)
+            if hasattr(self, 'chk_caja_global'): self.chk_caja_global.setChecked(False)
+            if hasattr(self, 'chk_iconos'): self.chk_iconos.setChecked(True)
+            if hasattr(self, 'cmb_color_iconos'): self.cmb_color_iconos.setCurrentIndex(6) # Magenta
+            if hasattr(self, 'spin_ancho'): self.spin_ancho.setValue(45)
+            if hasattr(self, 'cmb_barra_lleno'): self.cmb_barra_lleno.setCurrentIndex(7) # Cian
+            if hasattr(self, 'cmb_barra_vacio'): self.cmb_barra_vacio.setCurrentIndex(1) # Gris
+
+            self.secciones_datos = [
+                {
+                    "nombre": "VAMPIRE", "color": "35", "color_valores": "36",
+                    "arbol": True, "cuadrado": False, "icono_titulo": "󰎆", "color_icono_titulo": "35",
+                    "modulos": [
+                        {"type": "os", "icon_color": "35"},
+                        {"type": "kernel", "icon_color": "35"},
+                        {"type": "packages", "icon_color": "35"},
+                        {"type": "shell", "icon_color": "35"},
+                        {"type": "terminal", "icon_color": "35"},
+                        {"type": "memory", "usar_barra": True, "icon_color": "35"},
+                        {"type": "uptime", "icon_color": "35"}
+                    ]
+                }
+            ]
+
+        elif indice == 4:  # Terminal Retro (Hacker)
+            if hasattr(self, 'chk_caja_global'): self.chk_caja_global.setChecked(True)
+            if hasattr(self, 'cmb_color_global'): self.cmb_color_global.setCurrentIndex(1) # Verde
+            if hasattr(self, 'txt_titulo_global'): self.txt_titulo_global.setText("MAINFRAME TERMINAL")
+            if hasattr(self, 'cmb_alineacion_global'): self.cmb_alineacion_global.setCurrentIndex(1) # Centro
+            if hasattr(self, 'chk_iconos'): self.chk_iconos.setChecked(False) # ¡Sin iconos!
+            if hasattr(self, 'spin_ancho'): self.spin_ancho.setValue(50)
+            if hasattr(self, 'cmb_barra_lleno'): self.cmb_barra_lleno.setCurrentIndex(3) # Verde
+            if hasattr(self, 'cmb_barra_vacio'): self.cmb_barra_vacio.setCurrentIndex(1) # Gris
+            if hasattr(self, 'cmb_barra_chars'): self.cmb_barra_chars.setCurrentIndex(1) # █ / █
+
+            self.secciones_datos = [
+                {
+                    "nombre": "SYSTEM", "color": "32", "color_valores": "32",
+                    "arbol": False, "cuadrado": False, "icono_titulo": ">", "color_icono_titulo": "32",
+                    "modulos": [
+                        {"type": "os"},
+                        {"type": "host"},
+                        {"type": "kernel"},
+                        {"type": "cpu"},
+                        {"type": "memory", "usar_barra": True},
+                        {"type": "disk", "folders": "/", "custom_text": "Disk /", "usar_barra": True},
+                        {"type": "localip"}
+                    ]
+                }
+            ]
+
+        elif indice == 5:  # Catppuccin (Pastel y Bloques)
+            if hasattr(self, 'chk_caja_global'): self.chk_caja_global.setChecked(False)
+            if hasattr(self, 'chk_iconos'): self.chk_iconos.setChecked(True)
+            if hasattr(self, 'cmb_color_iconos'): self.cmb_color_iconos.setCurrentIndex(5) # Azul
+            if hasattr(self, 'spin_ancho'): self.spin_ancho.setValue(45)
+            if hasattr(self, 'cmb_barra_lleno'): self.cmb_barra_lleno.setCurrentIndex(5) # Azul
+            if hasattr(self, 'cmb_barra_vacio'): self.cmb_barra_vacio.setCurrentIndex(1) # Gris
+            if hasattr(self, 'cmb_barra_chars'): self.cmb_barra_chars.setCurrentIndex(3) # ● / ○
+
+            self.secciones_datos = [
+                {
+                    "nombre": "SOFTWARE", "color": "34", "color_valores": "37",
+                    "arbol": False, "cuadrado": True, "icono_titulo": "󰾆", "color_icono_titulo": "34",
+                    "modulos": [
+                        {"type": "os", "icon_color": "34"},
+                        {"type": "wm", "icon_color": "34"},
+                        {"type": "theme", "icon_color": "34"},
+                        {"type": "icons", "icon_color": "34"},
+                        {"type": "terminal", "icon_color": "34"}
+                    ]
+                },
+                {
+                    "nombre": "HARDWARE", "color": "36", "color_valores": "37",
+                    "arbol": False, "cuadrado": True, "icono_titulo": "", "color_icono_titulo": "36",
+                    "modulos": [
+                        {"type": "cpu", "icon_color": "36"},
+                        {"type": "gpu", "icon_color": "36"},
+                        {"type": "memory", "icon_color": "36", "usar_barra": True},
+                        {"type": "battery", "icon_color": "36", "usar_barra": True}
+                    ]
+                }
+            ]
+
         # Restauramos las señales
         if hasattr(self, 'spin_ancho'): self.spin_ancho.blockSignals(False)
+        if hasattr(self, 'spin_padding_top_secciones'):
+            self.spin_padding_top_secciones.setValue(0) # Restablecer a 0 por defecto al cargar plantilla
+            self.spin_padding_top_secciones.blockSignals(False)
+        if hasattr(self, 'spin_padding_secciones'):
+            self.spin_padding_secciones.setValue(1) # Restablecer a 1 por defecto al cargar plantilla
+            self.spin_padding_secciones.blockSignals(False)
         if hasattr(self, 'chk_caja_global'): self.chk_caja_global.blockSignals(False)
         if hasattr(self, 'cmb_color_global'): self.cmb_color_global.blockSignals(False)
         if hasattr(self, 'chk_iconos'): self.chk_iconos.blockSignals(False)
@@ -1525,7 +1661,19 @@ class FastfetchConfigurator(QMainWindow):
             "weather": "", "version": "󰏖", "custom": "󰏫"
         }
 
-        for sec in self.secciones_datos:
+        # Espaciado superior inicial antes de que empiece la primera sección
+        espacio_top = self.spin_padding_top_secciones.value() if hasattr(self, 'spin_padding_top_secciones') else 0
+        for _ in range(espacio_top):
+            if usar_caja_global:
+                if es_vista_previa:
+                    modulos.append({"type": "custom", "format": f"{c_gl}│{reset}"})
+                else:
+                    modulos.append({"type": "custom", "format": f"{pared_izq_gl}{c_gl}{mov_adel_gl}│{mov_atras_gl}{reset}"})
+            else:
+                modulos.append("break")
+
+        total_secciones = len(self.secciones_datos)
+        for idx_sec, sec in enumerate(self.secciones_datos):
             color = f"\u001b[0;{sec['color']}m"
             color_val_num = sec.get('color_valores', '0')
             color_val_ansi = f"\u001b[0;{color_val_num}m" if color_val_num != '0' else ""
@@ -1641,14 +1789,21 @@ class FastfetchConfigurator(QMainWindow):
                     format_inf = f"{pared_izq_gl}{c_gl}{mov_adel_gl}│{mov_atras_gl}{reset}{color} └{linea_inf}┘{reset}"
                 modulos.append({"type": "custom", "format": format_inf})
 
-            # Mantenemos las paredes globales vivas incluso en los saltos de línea vacíos
-            if usar_caja_global:
-                if es_vista_previa:
-                    modulos.append({"type": "custom", "format": f"{c_gl}│{reset}"})
+            # Espaciado entre secciones (Padding)
+            espacio = self.spin_padding_secciones.value() if hasattr(self, 'spin_padding_secciones') else 1
+
+            # Si es la última sección y NO hay caja global, no hace falta salto extra al final
+            if idx_sec == total_secciones - 1 and not usar_caja_global:
+                espacio = 0
+
+            for _ in range(espacio):
+                if usar_caja_global:
+                    if es_vista_previa:
+                        modulos.append({"type": "custom", "format": f"{c_gl}│{reset}"})
+                    else:
+                        modulos.append({"type": "custom", "format": f"{pared_izq_gl}{c_gl}{mov_adel_gl}│{mov_atras_gl}{reset}"})
                 else:
-                    modulos.append({"type": "custom", "format": f"{pared_izq_gl}{c_gl}{mov_adel_gl}│{mov_atras_gl}{reset}"})
-            else:
-                modulos.append("break")
+                    modulos.append("break")
 
         if usar_caja_global:
             # Cerramos la caja global por abajo
@@ -1722,7 +1877,9 @@ class FastfetchConfigurator(QMainWindow):
                 "color_iconos": self.cmb_color_iconos.currentIndex() if hasattr(self, 'cmb_color_iconos') else 0,
                 "barra_lleno": self.cmb_barra_lleno.currentIndex() if hasattr(self, 'cmb_barra_lleno') else 0,
                 "barra_vacio": self.cmb_barra_vacio.currentIndex() if hasattr(self, 'cmb_barra_vacio') else 0,
-                "barra_chars": self.cmb_barra_chars.currentIndex() if hasattr(self, 'cmb_barra_chars') else 0
+                "barra_chars": self.cmb_barra_chars.currentIndex() if hasattr(self, 'cmb_barra_chars') else 0,
+                "padding_top_secciones": self.spin_padding_top_secciones.value() if hasattr(self, 'spin_padding_top_secciones') else 0,
+                "padding_secciones": self.spin_padding_secciones.value() if hasattr(self, 'spin_padding_secciones') else 1
             },
             "logo": logo_config,
             "display": {
@@ -1842,7 +1999,21 @@ class FastfetchConfigurator(QMainWindow):
             self.update_preview()
 
 if __name__ == "__main__":
+    # Truco para que Windows reconozca el icono en la barra de tareas al compilar
+    if platform.system() == "Windows":
+        import ctypes
+        myappid = 'anabasasoft.fastfetchconfig.gui.1.0'
+        try:
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+        except Exception:
+            pass
+
     app = QApplication(sys.argv)
+
+    # --- Aplicar el icono globalmente ---
+    ruta_icono = resource_path("icono.png")
+    app.setWindowIcon(QIcon(ruta_icono))
+
     window = FastfetchConfigurator()
     window.showMaximized()
     sys.exit(app.exec())
