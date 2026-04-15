@@ -16,6 +16,7 @@
 [![PyQt6](https://img.shields.io/badge/PyQt6-GUI-41CD52?style=flat-square&logo=qt&logoColor=white)](https://pypi.org/project/PyQt6/)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey?style=flat-square)](https://github.com)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+[![AUR](https://img.shields.io/badge/AUR-Available-1793D1?style=flat-square&logo=archlinux&logoColor=white)](https://aur.archlinux.org/)
 [![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square)]()
 
 </div>
@@ -26,6 +27,7 @@
 
 - [About](#-about)
 - [Features](#-features)
+- [Download](#-download)
 - [Requirements](#-requirements)
 - [Installation](#-installation)
 - [Usage](#-usage)
@@ -117,6 +119,45 @@ Wrap the entire fastfetch output in a styled global box with optional title text
 
 ### 🍫 Progress Bar Customization
 Choose the fill and empty characters for all progress bars (blocks, dots, pipes, arrows…) and their respective ANSI colors — with both static and dynamic automatic color modes.
+
+---
+
+## 📥 Download
+
+Pre-built binaries are available for all major platforms — no Python installation required.
+
+| Platform | Format | Link |
+|---|---|---|
+| 🐧 Linux | `.deb` (Debian / Ubuntu) | [Download](https://github.com/AnabasaSoft/fastfetch-configurator/releases/latest) |
+| 🐧 Linux | `.rpm` (Fedora / openSUSE) | [Download](https://github.com/AnabasaSoft/fastfetch-configurator/releases/latest) |
+| 🐧 Linux | Binary (standalone) | [Download](https://github.com/AnabasaSoft/fastfetch-configurator/releases/latest) |
+| 🍎 macOS | Binary (standalone) | [Download](https://github.com/AnabasaSoft/fastfetch-configurator/releases/latest) |
+| 🪟 Windows | `.exe` installer | [Download](https://github.com/AnabasaSoft/fastfetch-configurator/releases/latest) |
+| <img src="https://cdn.simpleicons.org/archlinux/1793D1" height="14"/> Arch Linux | AUR | `yay -S fastfetch-configurator` |
+
+### Linux `.deb`
+
+```bash
+sudo dpkg -i fastfetch-configurator.deb
+```
+
+### Linux `.rpm`
+
+```bash
+sudo rpm -i fastfetch-configurator.rpm
+# or with dnf:
+sudo dnf install fastfetch-configurator.rpm
+```
+
+### Arch Linux (AUR)
+
+```bash
+yay -S fastfetch-configurator
+# or with paru:
+paru -S fastfetch-configurator
+```
+
+> Prefer to run from source? See the [Installation](#-installation) section below.
 
 ---
 
