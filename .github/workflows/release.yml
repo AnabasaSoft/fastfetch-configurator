@@ -6,7 +6,7 @@ on:
       - 'v*' # Se ejecuta automáticamente al subir un tag como v1.0
   workflow_dispatch: # Permite ejecutarlo a mano desde la web
 
-# --- NUEVO: Dar permiso de escritura al bot para crear la Release ---
+# Dar permiso de escritura al bot para crear la Release
 permissions:
   contents: write
 
@@ -32,13 +32,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install PyQt6 ansi2html pyinstaller Pillow
 
-      - name: Compilar con PyInstaller (Linux / macOS)
-        if: runner.os != 'Windows'
-        run: pyinstaller --noconsole --onefile --icon=icono.png --add-data "icono.png:." --name FastfetchConfig main.py
-
       - name: Compilar con PyInstaller (Windows)
         if: runner.os == 'Windows'
-        run: pyinstaller --noconsole --onefile --icon=icono.png --add-data "icono.png;." --name FastfetchConfig main.py
+        run: |
+          pyinstaller --noconsole --onefile --icon=icono.png --add-data "icono.png;." --name FastfetchConfig_Windows main.py
+
+      - name: Compilar con PyInstaller (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          pyinstaller --noconsole --onefile --icon=icono.png --add-data "icono.png:." --name FastfetchConfig_Linux main.py
+
+      - name: Compilar y comprimir (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          pyinstaller --noconsole --onefile --icon=icono.png --add-data "icono.png:." --name FastfetchConfig main.py
+          cd dist
+          zip -r FastfetchConfig_macOS.zip FastfetchConfig.app
 
       - name: Instalar FPM para crear .deb y .rpm (Solo Linux)
         if: runner.os == 'Linux'
@@ -49,16 +58,19 @@ jobs:
 
       - name: Crear paquetes .deb y .rpm (Solo Linux)
         if: runner.os == 'Linux'
+        # Al instalar el paquete, el ejecutable se guardará en /usr/bin/fastfetch-config
         run: |
-          fpm -s dir -t deb -n fastfetch-config -v 1.0.0 --prefix /usr/bin -p dist/fastfetch-config.deb dist/FastfetchConfig
-          fpm -s dir -t rpm -n fastfetch-config -v 1.0.0 --prefix /usr/bin -p dist/fastfetch-config.rpm dist/FastfetchConfig
+          fpm -s dir -t deb -n fastfetch-config -v 1.0.0 --prefix /usr/bin -p dist/fastfetch-config.deb dist/FastfetchConfig_Linux=/usr/bin/fastfetch-config
+          fpm -s dir -t rpm -n fastfetch-config -v 1.0.0 --prefix /usr/bin -p dist/fastfetch-config.rpm dist/FastfetchConfig_Linux=/usr/bin/fastfetch-config
 
       - name: Subir binarios a la Release de GitHub
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            dist/FastfetchConfig*
+            dist/FastfetchConfig_Windows.exe
+            dist/FastfetchConfig_Linux
+            dist/FastfetchConfig_macOS.zip
             dist/*.deb
             dist/*.rpm
         env:
